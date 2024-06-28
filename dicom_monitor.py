@@ -7,10 +7,12 @@ from datetime import datetime, timedelta
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import pydicom
+from setproctitle import *
 import requests
 import re
 import threading
 
+setproctitle('Dicom Monitor')
 
 def load_settings(settings_file):
     try:
@@ -27,57 +29,6 @@ def load_settings(settings_file):
 def normalize_string(s):
     # Remove special characters and spaces, convert to lowercase
     return re.sub(r"[^a-zA-Z0-9]", "", s).lower()
-
-class DicomFileHandler2(FileSystemEventHandler):
-    def __init__(self, configs, check_interval, stable_duration):
-        self.configs = configs
-        self.check_interval = check_interval
-        self.stable_duration = stable_duration
-        self.processed_files = set()
-        self.processing_files = set()
-        self.lock = threading.Lock()
-
-    def on_modified(self, event):
-        self.process(event)
-
-    def process(self, event):
-        if event.is_directory:
-            return
-        if event.src_path.lower().endswith(".dcm"):
-            if self.is_file_stable(event.src_path):
-                self.handle_dicom_file(event.src_path)
-
-    def is_file_stable(self, file_path):
-        previous_size = -1
-        stable_time = 0
-        while stable_time < self.stable_duration:
-            current_size = os.path.getsize(file_path)
-            if current_size != previous_size:
-                stable_time = 0
-                previous_size = current_size
-            else:
-                stable_time += self.check_interval
-            time.sleep(self.check_interval)
-        return True
-
-    def handle_dicom_file(self, file_path):
-        try:
-            ds = pydicom.dcmread(file_path)
-            study_description = getattr(ds, "StudyDescription", "")
-            norm_study_description = normalize_string(study_description)
-            for config in self.configs:
-                norm_config_study_description = normalize_string(
-                    config["study_description"]
-                )
-                if norm_study_description == norm_config_study_description:
-                    self.send_to_api(file_path, config["api_endpoint"])
-        except Exception as e:
-            logging.error(f"Failed to process {file_path}: {e}")
-
-    def send_to_api(self, file_path, api_endpoint):
-        logging.info(f'API: {file_path}')
-
-
 
 
 class DicomFileHandler(FileSystemEventHandler):
@@ -215,7 +166,9 @@ def main():
 
     SETTINGS_FILE = args.settings
     LOG_DIR = args.logdir
-    LOG_FILE = os.path.join(LOG_DIR, "dicom_monitor.log")
+    # Get the current process ID
+    pid = os.getpid()
+    LOG_FILE = os.path.join(LOG_DIR, f"dicom_monitor_pid_{pid}.log")
 
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
