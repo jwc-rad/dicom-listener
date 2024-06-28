@@ -8,6 +8,7 @@ pydicom = "*"
 requests = "*"
 watchdog = "*"
 setproctitle = "*"
+psutil = "*"
 
 [dev-packages]
 

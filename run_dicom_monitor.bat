@@ -1,2 +1,2 @@
 @echo off
-call pipenv run python dicom_monitor.py
+call pipenv run python-dicom-monitor dicom_monitor.py

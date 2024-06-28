@@ -7,12 +7,10 @@ from datetime import datetime, timedelta
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import pydicom
-from setproctitle import *
 import requests
 import re
 import threading
 
-setproctitle('Dicom Monitor')
 
 def load_settings(settings_file):
     try:
@@ -150,7 +148,7 @@ class DicomFileDeleter:
         self.stop_event.set()
 
 
-def main():
+def main():    
     default_settings_file = os.path.join(os.path.dirname(__file__), 'custom', 'settings.json')
     default_log_dir = os.path.join(os.path.dirname(__file__), 'logs')
 
