@@ -6,6 +6,7 @@
 
 **/temp
 **/runs
+**/custom
 
 **/*.ipynb
 
