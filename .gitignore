@@ -1,0 +1,14 @@
+**/.vscode
+**/.ipynb_checkpoints
+**/__pycache__
+**/logs
+*.egg-info
+
+**/temp
+**/runs
+
+**/*.ipynb
+
+**/onnx
+**/uploads
+*.db
